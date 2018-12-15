@@ -16,7 +16,7 @@ public class SudokuBoard {
 
     private final List<Coord> cells = new ArrayList<>();
     private Map<Coord, Integer> cellValues = new HashMap<>();
-    private Map<Coord, Set<Coord>> neighbors = new HashMap<>();
+    private Map<Integer, Set<Coord>> neighbors = new HashMap<>();
     private Set<Integer> validValues = new HashSet<>();
 
     SudokuBoard(int boardSize) {
@@ -29,9 +29,9 @@ public class SudokuBoard {
         for (int x = 0; x < sizeSquared; x++) {
             for (int y = 0; y < sizeSquared; y++) {
                 Coord coord = new Coord(x, y);
+                neighbors.put(cells.size(), findNeighbors(coord));
                 cells.add(coord);
                 cellValues.put(coord, 0);
-                neighbors.put(coord, findNeighbors(coord));
             }
         }
     }
@@ -48,7 +48,7 @@ public class SudokuBoard {
     }
 
     public void fill() {
-        if (!doFill(new Coord(0, 0))){
+        if (!doFill(0)){
             throw new RuntimeException("Unable to fill board: " + this);
         }
     }
@@ -79,11 +79,15 @@ public class SudokuBoard {
         return result;
     }
 
-    private boolean doFill(Coord coord) {
+    private boolean doFill(int index) {
+        Coord coord = cells.get(index);
         // get neighbor cellValues
-        Set<Integer> neighborValues = neighbors.get(coord).stream()
-            .map(c -> cellValues.get(c))
-            .collect(Collectors.toSet());
+        Set<Integer> neighborValues = new HashSet<>();
+
+        for (Coord neighbor : neighbors.get(index)){
+            neighborValues.add(cellValues.get(neighbor));
+        }
+
         // filter valid cellValues
         HashSet<Integer> remainingValue = new HashSet<Integer>(validValues);
         remainingValue.removeAll(neighborValues);
@@ -94,7 +98,7 @@ public class SudokuBoard {
         for (Integer value : remainingList) {
             cellValues.put(coord, value);
 
-            if (isLast(coord) || doFill(nextCell(coord))) {
+            if (index == cells.size() - 1 || doFill(index + 1)) {
                 return true;
             }
         }
@@ -102,17 +106,5 @@ public class SudokuBoard {
         // out of options backtrack
         cellValues.put(coord, 0);
         return false;
-    }
-
-    private Coord nextCell(Coord coord) {
-        if (coord.y == sizeSquared - 1) {
-            return new Coord(coord.x + 1, 0);
-        }
-        return new Coord(coord.x, coord.y + 1);
-    }
-
-    private boolean isLast(Coord coord) {
-        return coord.x == sizeSquared - 1 &&
-            coord.y == sizeSquared - 1;
     }
 }
