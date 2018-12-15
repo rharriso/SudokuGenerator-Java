@@ -43,10 +43,6 @@ public class SudokuBoard {
             .collect(Collectors.joining("|"));
     }
 
-    public void reset() {
-        cells.forEach(key -> cellValues.put(key, 0));
-    }
-
     public void fill() {
         if (!doFill(0)){
             throw new RuntimeException("Unable to fill board: " + this);
