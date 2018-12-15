@@ -1,7 +1,6 @@
 package com.rharriso;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class SudokuBoard {
     private final int boardSize;
@@ -18,6 +16,7 @@ public class SudokuBoard {
 
     private final List<Coord> cells = new ArrayList<>();
     private Map<Coord, Integer> cellValues = new HashMap<>();
+    private Map<Coord, Set<Coord>> neighbors = new HashMap<>();
     private Set<Integer> validValues = new HashSet<>();
 
     SudokuBoard(int boardSize) {
@@ -29,8 +28,10 @@ public class SudokuBoard {
 
         for (int x = 0; x < sizeSquared; x++) {
             for (int y = 0; y < sizeSquared; y++) {
-                cells.add(new Coord(x, y));
-                cellValues.put(new Coord(x, y), 0);
+                Coord coord = new Coord(x, y);
+                cells.add(coord);
+                cellValues.put(coord, 0);
+                neighbors.put(coord, findNeighbors(coord));
             }
         }
     }
@@ -48,7 +49,7 @@ public class SudokuBoard {
         }
     }
 
-    private Set<Coord> neighbors(Coord coord) {
+    private Set<Coord> findNeighbors(Coord coord) {
         Set<Coord> result = new HashSet<>();
 
         // generate row neighbors
@@ -76,7 +77,7 @@ public class SudokuBoard {
 
     private boolean doFill(Coord coord) {
         // get neighbor cellValues
-        Set<Integer> neighborValues = neighbors(coord).stream()
+        Set<Integer> neighborValues = neighbors.get(coord).stream()
             .map(c -> cellValues.get(c))
             .collect(Collectors.toSet());
         // filter valid cellValues
